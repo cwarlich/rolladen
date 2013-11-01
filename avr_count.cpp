@@ -2,7 +2,7 @@
 #define F_CPU 8000000UL      // 8 MHz (fuer delay.h)
 #include <util/delay.h>
 #include "avr_count.h"
-#define MAX_ACTIVE 0xffff
+#define MAX_ACTIVE 0xfffffff
 template<int N> struct Ln {enum {value = Ln<N >> 1>::value + 1};};
 template<> struct Ln<1> {enum {value = 0};};
 // Shift count down by 2.
@@ -46,6 +46,9 @@ int main() {
                     if(in()) period--; else break;
                 }
             } while(period);
+            up();
+            active = MAX_ACTIVE;
+#if 0
             if(eeprom == -1) setEeprom(ADDRESS(count));
             else if(eeprom == ADDRESS(count)) {
                 switch(count & MASK) {
@@ -58,4 +61,5 @@ int main() {
             }
         }
     }
+#endif
 }
