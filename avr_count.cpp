@@ -60,6 +60,6 @@ int main() {
                 active = MAX_ACTIVE;
             }
         }
-    }
 #endif
+    }
 }
