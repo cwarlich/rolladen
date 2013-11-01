@@ -1,3 +1,5 @@
+#!/bin/bash
+set -e
 avr-g++ -c -g -Os -w -ffunction-sections -fdata-sections -mmcu=attiny85 avr_count.cpp -o avr_count.o
 avr-gcc -Os -Wl,--gc-sections -mmcu=attiny85 -o avr_count.elf avr_count.o
 avr-objcopy -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 avr_count.elf avr_count.eep 

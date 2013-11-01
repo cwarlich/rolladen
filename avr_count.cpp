@@ -29,6 +29,7 @@ int16_t eeprom = 10; // set to -1 initially
 int main() {
     long period;
     int count;
+    DDRB = _BV(PB1) | _BV(PB3);
     stop();
     while(true) {
         if(in()) up();
