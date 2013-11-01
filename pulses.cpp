@@ -57,8 +57,8 @@ int main(int argc, char **argv) {
     int ret = pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
     if(ret) error(1, ret, "\n");
     for(int i = 0; i < number; i++) {
-        pin(true);
         pin(false);
+        pin(true);
     }
     return 0;
 }

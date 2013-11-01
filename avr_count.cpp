@@ -29,8 +29,8 @@ void stop() {
 bool in() {return PINB & _BV(PB0);}
 int16_t eeprom = 10; // set to -1 initially
 int main() {
-    long period;
-    int count;
+    uint16_t period;
+    uint16_t count;
     DDRB = _BV(PB1) | _BV(PB3); // Output on PB1 and PB3 
     PORTB = _BV(PB0); // Pullup on PB0
     stop();
