@@ -5,8 +5,10 @@
 #define MAX_ACTIVE 0xffff
 template<int N> struct Ln {enum {value = Ln<N >> 1>::value + 1};};
 template<> struct Ln<1> {enum {value = 0};};
+// Shift count down by 2.
 #define ADDRESS(count) (count >> Ln<STOP>::value + 1)
-# define MASK (2^(Ln<STOP>::value + 1) - 1)
+// Mask is 0x3.
+#define MASK (2^(Ln<STOP>::value + 1) - 1)
 void setEeprom(int count) {}
 static uint32_t active = 0;
 void up() {
@@ -33,31 +35,27 @@ int main() {
     PORTB = _BV(PB0); // Pullup on PB0
     stop();
     while(true) {
-        if(in()) up();
-        else down();
-#if 0
         if(active) active--;
         else stop();
-        if(in()) {
+        if(!in()) {
             count = 0;
             do {
-                while(in()) period++;
+                while(!in()) period++;
                 count++;
                 for(int i = 0; i < period; i++) {
-                    if(!in()) period--; else break;
+                    if(in()) period--; else break;
                 }
             } while(period);
             if(eeprom == -1) setEeprom(ADDRESS(count));
             else if(eeprom == ADDRESS(count)) {
                 switch(count & MASK) {
-                    case UP: up(); break;
-                    case DOWN: down(); break;
-                    case REPORT: report(); break;
-                    default: stop(); break;
+                    case UP: up(); break; // eepprom * 4 pulses
+                    case DOWN: down(); break; // eeprom * 4 pulses + 1
+                    case REPORT: report(); break; // eeprom * 4 pulses + 2
+                    default: stop(); break; // eeprom * 4 pulses + 3
                 }
                 active = MAX_ACTIVE;
             }
         }
-#endif
     }
 }
