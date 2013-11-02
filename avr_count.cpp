@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/wdt.h>
 #define F_CPU 8000000UL      // 8 MHz (fuer delay.h)
 #include <util/delay.h>
 #include "avr_count.h"
@@ -38,8 +39,7 @@ inline void enablePb0RisingPcInt() {
     GIMSK = _BV(PCIE); // Enable interrupts globally.
 }
 inline void setupAndEnableWdtInt() {
-}
-inline void resetWdt() {
+    wdt_enable(WDTIE | WDTO_30MS); // Enable WDT interrupts after 32ms.
 }
 inline void powerDown() {
 }
@@ -67,6 +67,6 @@ ISR(WDT_vect) {
     onTime = 10;
 }
 ISR(PCINT0_vect) {
-    resetWdt();
+    wdt_reset();
     counter++;
 }
