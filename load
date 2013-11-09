@@ -1,5 +1,5 @@
 #!/bin/bash
 set -e
-avrdude -pt85 -cbsd -P/dev/parport0 -v -Uflash:w:avr_count.hex:i
+avrdude -pt13 -cbsd -P/dev/parport0 -v -Uflash:w:avr_count.hex:i
 # set to 8MHz, clock output enable
-#avrdude -pt85 -cbsd -P/dev/parport0 -v -v -v -v -Ulfuse:w:0xa2:m
+#avrdude -pt13 -cbsd -P/dev/parport0 -v -v -v -v -Ulfuse:w:0xa2:m
