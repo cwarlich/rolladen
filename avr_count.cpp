@@ -21,7 +21,7 @@ inline void stop() {
     PORTB &= ~_BV(PB3);          // PB2=Low -> Rolladen rauf aus
     PORTB &= ~_BV(PB2);          // PB2=Low -> Rolladen runter aus
 }
-inline void setup() {
+inline void write() {
 }
 inline void setupPorts() {
     DDRB = _BV(PB2) | _BV(PB3);  // Output on PB2 and PB3 
@@ -65,12 +65,12 @@ ISR(WDT_vect) {
     wdt_reset();
     int c = counter;
     counter = -1;
-    if(id == c / (oneMoreThanLastEnum * (MARGIN + 1))) {
-        switch((c - (MARGIN + 1) * oneMoreThanLastEnum * id - 1) / oneMoreThanLastEnum) {
+    if(id == c / (oneMoreThanLastEnum * M)) {
+        switch((c % (oneMoreThanLastEnum * M)) / M) {
             case rauf: up(); break;
             case runter: down(); break;
             case halt: stop(); break;
-            case init: setup(); break;
+            case init: write(); break;
             default: assert(false);
         }
     }
