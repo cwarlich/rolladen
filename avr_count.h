@@ -1,15 +1,14 @@
 /**********************/
 /* Change as desired. */
 /**********************/
-#define MARGIN 0 // Allows that much pulses counted too much, may start at zero.
+#define MARGIN 2 // Allows that much pulses counted too much, may start at zero.
 #define OFFSET 3 // Minimal address, may start at zero.
 /* Will be expanded to an enum comprising the commands. */
 #define commands(item)\
     item(rauf)\
     item(runter)\
     item(halt)\
-    item(init)\
-    item(x)
+    item(init)
 /*****************************************************************************/
 /* Don't change anything below if you don't exactly know what you are doing! */
 /*****************************************************************************/

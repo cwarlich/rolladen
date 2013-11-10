@@ -1,15 +1,7 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <error.h>
-#include <errno.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include "avr_count.h"
-
-const char *names[] = {
+/**********************/
+/* Change as desired. */
+/**********************/
+const char *names[] = { // List of roller shutters.
     "Gäste",
     "Arbeit",
     "Pergola",
@@ -29,17 +21,36 @@ const char *names[] = {
     "Lukas",
     "Maja"
 };
-#define PIN 15
+#define PIN 15 // Pin used to send pulses.
+#define PRIO 99 // Must be between 1 and 99.
+// Number of µs for pulses' high and low period.
+// Must not exceed half of the WDT timeout.
+#define USECS 100
+#define SPARES (MARGIN << 1) // Must not exceed MARGIN.
+/*****************************************************************************/
+/* Don't change anything below if you don't exactly know what you are doing! */
+/*****************************************************************************/
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <error.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include "avr_count.h"
+
 /* Calucate the size of an array. */
 #define SIZE(name) (sizeof(name) / sizeof(name[0]))
 /* Make an array item. */
 #define NAME_ITEM(name) #name,
-/* Make an array */
+/* Make an array. */
 #define MAKE_NAME(name) static const char *name[] = {LIST_GENERATOR(name, NAME_ITEM)}
 MAKE_NAME(commands);
 
 #define BCM2708_PERI_BASE 0x20000000
-#define GPIO_BASE         (BCM2708_PERI_BASE + 0x200000) /* GPIO controller */
+#define GPIO_BASE         (BCM2708_PERI_BASE + 0x200000) /* GPIO controller. */
 #define ADDRESS(g)        (*(gpio() + ((g) / 10)))
 #define SHIFT(g)          (((g) % 10) * 3)
 
@@ -47,22 +58,22 @@ MAKE_NAME(commands);
 #define INP(g)    ADDRESS(g) &= ~(7 << SHIFT(g))
 #define OUT(g)    INP(g); ADDRESS(g) |=  (1 << SHIFT(g))
 #define ALT(g, a) INP(g); ADDRESS(g) |= (((a) <= 3 ? (a) + 4 : (a) == 4 ? 3 : 2) << SHIFT(g))
-#define SET       *(gpio() + 7)  // sets   bits which are 1 ignores bits which are 0
-#define CLR       *(gpio() + 10) // clears bits which are 1 ignores bits which are 0
+#define SET       *(gpio() + 7)  // Sets   bits which are 1 ignores bits which are 0.
+#define CLR       *(gpio() + 10) // Clears bits which are 1 ignores bits which are 0.
 
 volatile int *gpio() {
     static volatile void *ret = MAP_FAILED;
     int fd;
     if(ret == MAP_FAILED) {
         if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) < 0) error(-3, errno, "\n");
-        ret = mmap(NULL,                   // Any adddress in our space will do
-                   getpagesize(),          // Map length
-                   PROT_READ | PROT_WRITE, // Enable reading & writing to mapped memory
-                   MAP_SHARED,             // Shared with other processes
-                   fd,                     // File to map
-                   GPIO_BASE               // Offset to GPIO peripheral
+        ret = mmap(NULL,                   // Any adddress in our space will do.
+                   getpagesize(),          // Map length.
+                   PROT_READ | PROT_WRITE, // Enable reading & writing to mapped memory.
+                   MAP_SHARED,             // Shared with other processes.
+                   fd,                     // File to map.
+                   GPIO_BASE               // Offset to GPIO peripheral.
                   );
-        close(fd); // No need to keep mem_fd open after mmap
+        close(fd); // No need to keep mem_fd open after mmap.
         if (ret == MAP_FAILED) error(-4, errno, "\n");
     }
     return (volatile int *) ret;
@@ -81,7 +92,7 @@ void usage(char *arg) {
 void pin(bool value) {
     if(value) SET = 1 << PIN;
     else  CLR = 1 << PIN;
-    usleep(100);
+    usleep(USECS);
 }
 
 int main(int argc, char **argv) {
@@ -91,10 +102,10 @@ int main(int argc, char **argv) {
     if(position >= SIZE(names)) usage(argv[0]);
     for(task = 0; task < SIZE(commands); task++) if(!strcmp(argv[2], commands[task])) break;
     if(task >= SIZE(commands)) usage(argv[0]);
-    int count = (((OFFSET + position) * M) + task) * oneMoreThanLastEnum + 1;
+    int count = (((OFFSET + position) * oneMoreThanLastEnum) + task) * M + 1 + SPARES;
     OUT(PIN);
     sched_param param;
-    param.sched_priority = 99;
+    param.sched_priority = PRIO;
     int ret = pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
     if(ret) error(1, ret, "\n");
     for(int i = 0; i < count; i++) {
