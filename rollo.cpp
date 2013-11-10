@@ -91,15 +91,16 @@ int main(int argc, char **argv) {
     if(position >= SIZE(names)) usage(argv[0]);
     for(task = 0; task < SIZE(commands); task++) if(!strcmp(argv[2], commands[task])) break;
     if(task >= SIZE(commands)) usage(argv[0]);
+    int count = (((OFFSET + position) * (MARGIN + 1)) + task) * oneMoreThanLastEnum + 1;
     OUT(PIN);
     sched_param param;
     param.sched_priority = 99;
     int ret = pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
     if(ret) error(1, ret, "\n");
-    for(int i = 0; i < ((((OFFSET + position) << MARGIN) + task) << Ln<SIZE(commands)>::value) + 1; i++) {
+    for(int i = 0; i < count; i++) {
         pin(false);
         pin(true);
     }
-    printf("%d", ((((OFFSET + position) << MARGIN) + task) << Ln<SIZE(commands)>::value) + 1);
+    printf("%d\n", count);
     return 0;
 }
