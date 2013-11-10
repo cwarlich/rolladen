@@ -5,12 +5,16 @@
 #include <util/delay.h>
 #include "avr_count.h"
 #include <assert.h>
-template<int N> struct Ln {enum {value = Ln<N >> 1>::value + 1};};
-template<> struct Ln<1> {enum {value = 0};};
-#define ADDRESS(count) (count >> Ln<STOP << MARGIN>::value + 1)
-#define MASK ((1 << (Ln<STOP << MARGIN>::value + 1)) - (1 << MARGIN))
-#define ID 10
-#define ONTIME 20
+/* Make an anonymous enum. */
+#define MAKE_ENUM(name) enum {LIST_GENERATOR(name, ENUM_ITEM)}
+/* Make an enum item */
+#define ENUM_ITEM(name) name,
+/* Now, we actually create the enum. */
+MAKE_ENUM(commands);
+#define ADDRESS(count) (count >> Ln<init << MARGIN>::value + 1)
+#define MASK ((1 << (Ln<init << MARGIN>::value + 1)) - (1 << MARGIN))
+#define ID (OFFSET + 1)
+#define ONTIME 125 * 60 / 2 // 60s until stop.
 inline void up() {
     PORTB &= ~_BV(PB2);        // PB2=Low -> Rolladen runter aus
     _delay_ms(100);            // Warte 100ms
@@ -24,6 +28,8 @@ inline void down() {
 inline void stop() {
     PORTB &= ~_BV(PB3);        // PB2=Low -> Rolladen rauf aus
     PORTB &= ~_BV(PB2);        // PB2=Low -> Rolladen runter aus
+}
+inline void setup() {
 }
 inline void setupPorts() {
     DDRB = _BV(PB2) | _BV(PB3); // Output on PB2 and PB3 
@@ -40,8 +46,8 @@ inline void setupInts() {
 }
 inline void setupWdt() {
     wdt_reset();
-    //WDTCR |= _BV(WDTIE) | _BV(WDP0) | _BV(WDP1) | _BV(WDP2);
-    WDTCR |= _BV(WDTIE) | _BV(WDP0);
+    //WDTCR |= _BV(WDTIE) | _BV(WDP0) | _BV(WDP1) | _BV(WDP2); // 2s Timeout.
+    WDTCR |= _BV(WDTIE); // 16ms Timeout.
 }
 inline void powerDown() {
 }
@@ -71,15 +77,20 @@ ISR(WDT_vect) {
     counter = -1;
     if(id == ADDRESS(c)) {
         switch(c & MASK) {
-            case UP << MARGIN: up(); break; // id * 4  pulses + 1
-            case DOWN << MARGIN: down(); break; // id * 4 pulses + 2
-            default: stop(); break; // id * 4 pulses + 3 or + 4
+            case rauf << MARGIN: up(); break; // id * 16  pulses + 1
+            case runter << MARGIN: down(); break; // id * 16 pulses + 5
+            case halt << MARGIN: stop(); break; // id * 16 pulses + 9
+            case init << MARGIN: setup(); break; // id * 16 pulses + 13
+            default: assert(false);
         }
     }
+    if(onTime) onTime--;
+    else stop();
 }
 ISR(INT0_vect) {
     wdt_reset();
     counter++;
+    onTime = ONTIME;
 }
 /* Just to wake up. */
 ISR(PCINT0_vect) {

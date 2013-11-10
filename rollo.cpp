@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <error.h>
@@ -6,6 +7,36 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include "avr_count.h"
+
+const char *names[] = {
+    "Gäste",
+    "Arbeit",
+    "Pergola",
+    "pergola",
+    "Wohnen",
+    "Küche",
+    "Terasse",
+    "terasse",
+    "Rechts",
+    "Links",
+    "Kinder",
+    "Flur",
+    "Bad",
+    "Nord",
+    "West",
+    "Schlafen",
+    "Lukas",
+    "Maja"
+};
+/* Calucate the size of an array. */
+#define SIZE(name) (sizeof(name) / sizeof(name[0]))
+/* Make an array item. */
+#define NAME_ITEM(name) #name,
+/* Make an array */
+#define MAKE_NAME(name) static const char *name[] = {LIST_GENERATOR(name, NAME_ITEM)}
+MAKE_NAME(commands);
+
 #define BCM2708_PERI_BASE 0x20000000
 #define GPIO_BASE         (BCM2708_PERI_BASE + 0x200000) /* GPIO controller */
 #define ADDRESS(g)        (*(gpio() + ((g) / 10)))
@@ -36,29 +67,38 @@ volatile int *gpio() {
     return (volatile int *) ret;
 }
 
+void usage(char *arg) {
+    printf("Funktionsweise: %s <Name> <Kommando>\n", arg);
+    printf("Verfügbare Namen:");
+    for(int i = 0; i < SIZE(names); i++) printf(" %s", names[i]);
+    printf("\nVerfügbare Kommandos:");
+    for(int i = 0; i < SIZE(commands); i++) printf(" %s", commands[i]);
+    printf("\n");
+    exit(-1);
+}
+
 void pin(bool value) {
     if(value) SET = 1 << 4;
     else  CLR = 1 << 4;
     usleep(100);
 }
+
 int main(int argc, char **argv) {
-    if(argc != 2) {
-        printf("Usage: %s <number>\n", argv[0]); 
-        exit(-1);
-    }
-    int number = atoi(argv[1]);
-    if(number == 0) {
-        printf("Usage: %s <number>\n", argv[0]); 
-        exit(-2);
-    }
-    OUT(4);
+    if(argc != 3) usage(argv[0]);
+    int position, task;
+    for(position = 0; position < SIZE(names); position++) if(!strcmp(argv[1], names[position])) break;
+    if(position >= SIZE(names)) usage(argv[0]);
+    for(task = 0; task < SIZE(commands); task++) if(!strcmp(argv[2], commands[task])) break;
+    if(task >= SIZE(commands)) usage(argv[0]);
+    /*OUT(4);
     sched_param param;
     param.sched_priority = 99;
     int ret = pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
     if(ret) error(1, ret, "\n");
-    for(int i = 0; i < number; i++) {
+    for(int i = 0; i < ((((OFFSET + position) << MARGIN) + task) << Ln<SIZE(commands)>::value) + 1; i++) {
         pin(false);
         pin(true);
-    }
+    }*/
+    printf("%d %d %d\n", position, task, ((((OFFSET + position) << MARGIN) + task) << Ln<SIZE(commands)>::value) + 1);
     return 0;
 }

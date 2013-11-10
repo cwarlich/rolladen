@@ -1,1 +1,1 @@
-g++ -o pulses pulses.cpp -lpthread
+g++ -o rollo rollo.cpp -lpthread
