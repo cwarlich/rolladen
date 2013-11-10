@@ -29,6 +29,7 @@ const char *names[] = {
     "Lukas",
     "Maja"
 };
+#define PIN 15
 /* Calucate the size of an array. */
 #define SIZE(name) (sizeof(name) / sizeof(name[0]))
 /* Make an array item. */
@@ -78,8 +79,8 @@ void usage(char *arg) {
 }
 
 void pin(bool value) {
-    if(value) SET = 1 << 4;
-    else  CLR = 1 << 4;
+    if(value) SET = 1 << PIN;
+    else  CLR = 1 << PIN;
     usleep(100);
 }
 
@@ -90,7 +91,7 @@ int main(int argc, char **argv) {
     if(position >= SIZE(names)) usage(argv[0]);
     for(task = 0; task < SIZE(commands); task++) if(!strcmp(argv[2], commands[task])) break;
     if(task >= SIZE(commands)) usage(argv[0]);
-    /*OUT(4);
+    OUT(PIN);
     sched_param param;
     param.sched_priority = 99;
     int ret = pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
@@ -98,7 +99,7 @@ int main(int argc, char **argv) {
     for(int i = 0; i < ((((OFFSET + position) << MARGIN) + task) << Ln<SIZE(commands)>::value) + 1; i++) {
         pin(false);
         pin(true);
-    }*/
-    printf("%d %d %d\n", position, task, ((((OFFSET + position) << MARGIN) + task) << Ln<SIZE(commands)>::value) + 1);
+    }
+    printf("%d", ((((OFFSET + position) << MARGIN) + task) << Ln<SIZE(commands)>::value) + 1);
     return 0;
 }
