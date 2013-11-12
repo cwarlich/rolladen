@@ -26,7 +26,7 @@ const char *names[] = { // List of roller shutters.
 // Number of µs for pulses' high and low period.
 // Must not exceed half of the WDT timeout.
 #define USECS 100
-#define SPARES (MARGIN >> 1) // Must not exceed MARGIN.
+#define SPARES (MARGIN >> 1) // May start at zero and must not exceed MARGIN.
 /*****************************************************************************/
 /* Don't change anything below if you don't exactly know what you are doing! */
 /*****************************************************************************/
