@@ -15,7 +15,6 @@
 #include <util/delay.h>
 #include "avr_count.h"
 #include <assert.h>
-#define ID (OFFSET + 1)
 #define OT 125 * ONTIME / 2      // 60s until stop.
 void abort() {                   // Called by assert().
     PORTB |= _BV(PB3);           // PB2=Low -> Rolladen rauf an.
@@ -35,8 +34,6 @@ inline void down() {
 inline void stop() {
     PORTB &= ~_BV(PB3);          // PB2=Low -> Rolladen rauf aus.
     PORTB &= ~_BV(PB2);          // PB2=Low -> Rolladen runter aus.
-}
-inline void write() {
 }
 inline void setupPorts() {
     DDRB = _BV(PB2) | _BV(PB3);  // Output on PB2 and PB3 .
@@ -58,12 +55,13 @@ inline void setupWdt() {
 }
 inline void powerDown() {
 }
-int counter;
-int onTime;
-const int id = ID;
+uint32_t counter;
+uint16_t onTime;
+uint16_t eepromId EEMEM;
+uint16_t id;
 int main() {
+    id = eeprom_read_word(&eepromId);
     counter = -1;
-    //onTime = OT;
     setupPorts();
     setupInts();
     setupWdt();
@@ -73,17 +71,22 @@ int main() {
 }
 ISR(WDT_vect) {
     wdt_reset();
-    int c = counter;
-    counter = -1;
-    if(id == c / (oneMoreThanLastEnum * M)) {
-        switch((c % (oneMoreThanLastEnum * M)) / M) {
+    uint16_t receivedId = counter / (oneMoreThanLastEnum * M);
+    if(id == receivedId || id == -1) {
+        switch((counter % (oneMoreThanLastEnum * M)) / M) {
             case rauf: up(); break;
             case runter: down(); break;
             case halt: stop(); break;
-            case init: write(); break;
+            case init:
+                if(id == -1) {
+                    id = receivedId;
+                    eeprom_update_word(&eepromId, receivedId); 
+                }
+                break;
             default: assert(false);
         }
     }
+    counter = -1;
     if(onTime) onTime--;
     else stop();
 }
