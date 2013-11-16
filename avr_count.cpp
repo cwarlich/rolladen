@@ -42,8 +42,8 @@ inline void setupPorts() {
 }
 inline void setupInts() {
     // Rising edge for INT0 and allow power down mode.
-    //MCUCR = _BV(ISC00) | _BV(ISC01) | _BV(SE) | _BV(SM1);
-    MCUCR = _BV(ISC00) | _BV(ISC01);
+    MCUCR = _BV(ISC00) | _BV(ISC01) | _BV(SE) | _BV(SM1);
+    //MCUCR = _BV(ISC00) | _BV(ISC01);
     //PCMSK = _BV(PCINT1);       // Enables pin change interupt on PB1.
     SREG = _BV(SREG_I);          // STI, gets cleared in ISR and restored on RTI.
     //GIMSK = _BV(PCIE);         // Enable pin change interrupts.
@@ -62,10 +62,10 @@ int main() {
     id = eeprom_read_word(&eepromId);
     counter = -1;
     setupPorts();
-    setupInts();
     setupWdt();
+    setupInts();
     set_sleep_mode(SLEEP_MODE_PWR_SAVE);
-    while(true); // sleep_mode();
+    while(true) sleep_mode();
 }
 ISR(WDT_vect) {
     wdt_reset();
