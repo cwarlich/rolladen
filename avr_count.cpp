@@ -3,7 +3,7 @@
 /**********************/
 #define ONTIME 60                // 60s until stop.
 #define UPDOWN_DELAY 100         // 100ms between changing direction.
-#define NDEBUG                   // Disable assert.
+//#define NDEBUG                   // Disable assert.
 /*****************************************************************************/
 /* Don't change anything below if you don't exactly know what you are doing! */
 /*****************************************************************************/
@@ -12,6 +12,7 @@
 #include <avr/interrupt.h>
 #include <avr/wdt.h>
 #include <avr/eeprom.h>
+#include <avr/sleep.h>
 #include <util/delay.h>
 #include "avr_count.h"
 #include <assert.h>
@@ -53,9 +54,7 @@ inline void setupWdt() {
     //WDTCR |= _BV(WDTIE) | _BV(WDP0) | _BV(WDP1) | _BV(WDP2); // 2s Timeout.
     WDTCR |= _BV(WDTIE);         // 16ms Timeout.
 }
-inline void powerDown() {
-}
-uint32_t counter;
+int32_t counter;
 uint16_t onTime;
 uint16_t eepromId EEMEM;
 uint16_t id;
@@ -65,14 +64,13 @@ int main() {
     setupPorts();
     setupInts();
     setupWdt();
-    while(true) {
-        powerDown();
-    }
+    set_sleep_mode(SLEEP_MODE_PWR_SAVE);
+    while(true); // sleep_mode();
 }
 ISR(WDT_vect) {
     wdt_reset();
     uint16_t receivedId = counter / (oneMoreThanLastEnum * M);
-    if(id == receivedId || id == -1) {
+    if(id == receivedId || (id == -1 && receivedId >= OFFSET + 1)) {
         switch((counter % (oneMoreThanLastEnum * M)) / M) {
             case rauf: up(); break;
             case runter: down(); break;
@@ -80,7 +78,7 @@ ISR(WDT_vect) {
             case init:
                 if(id == -1) {
                     id = receivedId;
-                    eeprom_update_word(&eepromId, receivedId); 
+                    eeprom_write_word(&eepromId, receivedId); 
                 }
                 break;
             default: assert(false);

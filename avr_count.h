@@ -12,7 +12,7 @@
 /*****************************************************************************/
 /* Don't change anything below if you don't exactly know what you are doing! */
 /*****************************************************************************/
-/* Sometimes, one pulse s missing, so we always sent one more. */
+/* Sometimes, one pulse is missing, so we always sent one more. */
 #define M (MARGIN + 2)
 /* The indirection is needed for proper macro expansion. */
 #define LIST_GENERATOR(name, x) name(x)

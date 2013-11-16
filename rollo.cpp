@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
     if(position >= SIZE(names)) usage(argv[0]);
     for(task = 0; task < SIZE(commands); task++) if(!strcmp(argv[2], commands[task])) break;
     if(task >= SIZE(commands)) usage(argv[0]);
-    int count = (((OFFSET + position) * oneMoreThanLastEnum) + task) * M + 1 + SPARES;
+    int count = (((OFFSET + 1 + position) * oneMoreThanLastEnum) + task) * M + 1 + SPARES;
     OUT(PIN);
     sched_param param;
     param.sched_priority = PRIO;
