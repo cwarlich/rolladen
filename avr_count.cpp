@@ -27,16 +27,20 @@ inline void up() {
     PORTB &= ~_BV(PB2);          // PB2=Low -> Rolladen runter aus.
     _delay_ms(UPDOWN_DELAY);              
     PORTB |= _BV(PB3);           // PB3=High -> Rolladen rauf an.
+    _delay_ms(UPDOWN_DELAY);              
 }
 inline void down() {
     PORTB &= ~_BV(PB3);          // PB2=Low -> Rolladen rauf aus.
     _delay_ms(UPDOWN_DELAY);              
     PORTB |= _BV(PB2);           // PB3=High -> Rolladen runter an.
+    _delay_ms(UPDOWN_DELAY);              
 }
 inline void stop() {
     PORTB &= ~_BV(PB3);          // PB2=Low -> Rolladen rauf aus.
     PORTB &= ~_BV(PB2);          // PB2=Low -> Rolladen runter aus.
+    _delay_ms(UPDOWN_DELAY);              
 }
+inline void noop() {}
 inline void setupPorts() {
     DDRB = _BV(PB2) | _BV(PB3);  // Output on PB2 and PB3 .
     PORTB = _BV(PB1) | _BV(PB0) | _BV(PB4); // Pullup on PB1.
@@ -68,12 +72,16 @@ int main() {
     while(true) {
         if(upSwitch || downSwitch) {
             _delay_ms(UPDOWN_DELAY);
-            if(upSwitch && downSwitch) stop();
+            void (*f)(void) = noop;
+            cli();
+            if(upSwitch && downSwitch) f = stop;
             else {
                 onTime = OT;
-                if(upSwitch) up();
-                else down();
+                if(upSwitch) f = up;
+                else if(downSwitch) f = down;
             }
+            sei();
+            f();
             upSwitch = downSwitch = false;
         }              
     }
@@ -94,6 +102,7 @@ ISR(WDT_vect) {
                 break;
             default: assert(false);
         }
+        upSwitch = downSwitch = false;
     }
     counter = -1;
     if(onTime) onTime--;
