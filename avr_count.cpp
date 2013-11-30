@@ -3,7 +3,8 @@
 /**********************/
 #define ONTIME 60                // 60s until stop.
 #define UPDOWN_DELAY 100         // 100ms between changing direction.
-//#define NDEBUG                   // Disable assert.
+#define SWITCH_DELAY 500         // 500ms to stop
+#define NDEBUG                   // Disable assert.
 /*****************************************************************************/
 /* Don't change anything below if you don't exactly know what you are doing! */
 /*****************************************************************************/
@@ -38,16 +39,14 @@ inline void stop() {
 }
 inline void setupPorts() {
     DDRB = _BV(PB2) | _BV(PB3);  // Output on PB2 and PB3 .
-    PORTB = _BV(PB1) | _BV(PB0); // Pullup on PB1.
+    PORTB = _BV(PB1) | _BV(PB0) | _BV(PB4); // Pullup on PB1.
 }
 inline void setupInts() {
     // Rising edge for INT0 and allow power down mode.
     MCUCR = _BV(ISC00) | _BV(ISC01) | _BV(SE) | _BV(SM1);
-    //MCUCR = _BV(ISC00) | _BV(ISC01);
-    //PCMSK = _BV(PCINT1);       // Enables pin change interupt on PB1.
-    SREG = _BV(SREG_I);          // STI, gets cleared in ISR and restored on RTI.
-    //GIMSK = _BV(PCIE);         // Enable pin change interrupts.
-    GIMSK = _BV(INT0);           // Enable INT0.
+    PCMSK = _BV(PCINT0) | _BV(PCINT4); // Enables pin change interupt on PB1.
+    SREG = _BV(SREG_I);                // STI, gets cleared in ISR and restored on RTI.
+    GIMSK = _BV(INT0) | _BV(PCIE);     // Enable INT0.
 }
 inline void setupWdt() {
     //wdt_reset();
@@ -58,6 +57,7 @@ int32_t counter;
 uint16_t onTime;
 uint16_t eepromId EEMEM;
 uint16_t id;
+bool upSwitch = false, downSwitch = false;
 int main() {
     id = eeprom_read_word(&eepromId);
     counter = -1;
@@ -65,7 +65,18 @@ int main() {
     setupWdt();
     setupInts();
     set_sleep_mode(SLEEP_MODE_PWR_SAVE);
-    while(true) sleep_mode();
+    while(true) {
+        if(upSwitch || downSwitch) {
+            _delay_ms(UPDOWN_DELAY);
+            if(upSwitch && downSwitch) stop();
+            else {
+                onTime = OT;
+                if(upSwitch) up();
+                else down();
+            }
+            upSwitch = downSwitch = false;
+        }              
+    }
 }
 ISR(WDT_vect) {
     wdt_reset();
@@ -93,6 +104,5 @@ ISR(INT0_vect) {
     counter++;
     onTime = OT;
 }
-/* Just to wake up. */
-ISR(PCINT0_vect) {
-}
+ISR(PCINT0_vect) {upSwitch = true;}
+ISR(PCINT4_vect) {downSwitch = true;}
