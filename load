@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 # ATTINY13: Enable Brownout detector at 4.3V
-avrdude -pt13 -cbsd -P/dev/parport0 -v -v -v -v -Uhfuse:w:0xf9:m
+#avrdude -pt13 -cbsd -P/dev/parport0 -v -v -v -v -Uhfuse:w:0xf9:m
 avrdude -pt13 -cbsd -P/dev/parport0 -v -Uflash:w:avr_count.hex:i
 # ATTINY85: Set to 8MHz, clock output enable
 #avrdude -pt13 -cbsd -P/dev/parport0 -v -v -v -v -Ulfuse:w:0xa2:m

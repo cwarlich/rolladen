@@ -38,7 +38,7 @@ inline void down() {
 inline void stop() {
     PORTB &= ~_BV(PB3);          // PB2=Low -> Rolladen rauf aus.
     PORTB &= ~_BV(PB2);          // PB2=Low -> Rolladen runter aus.
-    _delay_ms(UPDOWN_DELAY);              
+    //_delay_ms(UPDOWN_DELAY);              
 }
 inline void noop() {}
 inline void setupPorts() {
@@ -47,43 +47,54 @@ inline void setupPorts() {
 }
 inline void setupInts() {
     // Rising edge for INT0 and allow power down mode.
-    MCUCR = _BV(ISC00) | _BV(ISC01) | _BV(SE) | _BV(SM1);
-    PCMSK = _BV(PCINT0) | _BV(PCINT4); // Enables pin change interupt on PB1.
+    //MCUCR = _BV(ISC00) | _BV(ISC01) | _BV(SE) | _BV(SM1);
+    MCUCR = _BV(ISC00) | _BV(ISC01);
+    //PCMSK = _BV(PCINT0) | _BV(PCINT4); // Enables pin change interupt on PB1 and PB4.
     SREG = _BV(SREG_I);                // STI, gets cleared in ISR and restored on RTI.
-    GIMSK = _BV(INT0) | _BV(PCIE);     // Enable INT0.
+    //GIMSK = _BV(INT0) | _BV(PCIE);     // Enable INT0 and PCI.
+    GIMSK = _BV(INT0);                 // Enable INT0.
 }
 inline void setupWdt() {
-    //wdt_reset();
     //WDTCR |= _BV(WDTIE) | _BV(WDP0) | _BV(WDP1) | _BV(WDP2); // 2s Timeout.
     WDTCR |= _BV(WDTIE);         // 16ms Timeout.
 }
-int32_t counter;
-uint16_t onTime;
+int32_t counter = -1;
+uint16_t onTime = OT;
 uint16_t eepromId EEMEM;
 uint16_t id;
 bool upSwitch = false, downSwitch = false;
+uint8_t pb, oldPb;
+inline void setSwitch() {
+    if((pb & _BV(PB0)) != (oldPb & _BV(PB0))) upSwitch = true;
+    if((pb & _BV(PB4)) != (oldPb & _BV(PB4))) downSwitch = true;
+    oldPb = pb;
+}
 int main() {
     id = eeprom_read_word(&eepromId);
-    counter = -1;
     setupPorts();
     setupWdt();
     setupInts();
     set_sleep_mode(SLEEP_MODE_PWR_SAVE);
+    oldPb = PINB & (_BV(PB0) | _BV(PB4));
     while(true) {
-        if(upSwitch || downSwitch) {
+        pb = PINB & (_BV(PB0) | _BV(PB4));
+        if(pb != oldPb) {
+            setSwitch();
             _delay_ms(UPDOWN_DELAY);
+            pb = PINB & (_BV(PB0) | _BV(PB4));
+            setSwitch();
             void (*f)(void) = noop;
             cli();
             if(upSwitch && downSwitch) f = stop;
             else {
                 onTime = OT;
-                if(upSwitch) f = up;
-                else if(downSwitch) f = down;
+                if(downSwitch) f = down;
+                else if(upSwitch) f = up;
             }
             sei();
             f();
             upSwitch = downSwitch = false;
-        }              
+        }
     }
 }
 ISR(WDT_vect) {
@@ -113,5 +124,4 @@ ISR(INT0_vect) {
     counter++;
     onTime = OT;
 }
-ISR(PCINT0_vect) {upSwitch = true;}
-ISR(PCINT4_vect) {downSwitch = true;}
+//ISR(PCINT0_vect) {/* Check which port caused PCI. */}
