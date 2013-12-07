@@ -63,6 +63,10 @@ uint16_t eepromId EEMEM;
 uint16_t id;
 bool upSwitch = false, downSwitch = false;
 int main() {
+    PORTB = _BV(PB2) | _BV(PB3);
+    if((PINB & (_BV(PB2) | _BV(PB3))) != (_BV(PB2) | _BV(PB3))) {
+        eeprom_write_word(&eepromId, 0); 
+    }
     id = eeprom_read_word(&eepromId);
     counter = -1;
     setupPorts();
