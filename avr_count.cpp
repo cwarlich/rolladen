@@ -18,18 +18,26 @@
 #include "avr_count.h"
 #include <assert.h>
 #define OT 125 * ONTIME / 2      // 60s until stop.
-void abort() {                   // Called by assert().
+int32_t counter = -1;
+uint16_t onTime = OT;
+uint16_t eepromId EEMEM;
+uint16_t id;
+bool upSwitch = false, downSwitch = false;
+uint8_t pb, oldPb;
+inline void abort() {                   // Called by assert().
     PORTB |= _BV(PB3);           // PB2=Low -> Rolladen rauf an.
     PORTB |= _BV(PB2);           // PB2=Low -> Rolladen runter an.
     while(true) {};
 }
 inline void up() {
+    onTime = OT;
     PORTB &= ~_BV(PB2);          // PB2=Low -> Rolladen runter aus.
     _delay_ms(UPDOWN_DELAY);              
     PORTB |= _BV(PB3);           // PB3=High -> Rolladen rauf an.
     _delay_ms(UPDOWN_DELAY);              
 }
 inline void down() {
+    onTime = OT;
     PORTB &= ~_BV(PB3);          // PB2=Low -> Rolladen rauf aus.
     _delay_ms(UPDOWN_DELAY);              
     PORTB |= _BV(PB2);           // PB3=High -> Rolladen runter an.
@@ -58,12 +66,6 @@ inline void setupWdt() {
     //WDTCR |= _BV(WDTIE) | _BV(WDP0) | _BV(WDP1) | _BV(WDP2); // 2s Timeout.
     WDTCR |= _BV(WDTIE);         // 16ms Timeout.
 }
-int32_t counter = -1;
-uint16_t onTime = OT;
-uint16_t eepromId EEMEM;
-uint16_t id;
-bool upSwitch = false, downSwitch = false;
-uint8_t pb, oldPb;
 inline void setSwitch() {
     if((pb & _BV(PB0)) != (oldPb & _BV(PB0))) upSwitch = true;
     if((pb & _BV(PB4)) != (oldPb & _BV(PB4))) downSwitch = true;
@@ -82,7 +84,6 @@ int main() {
     while(true) {
         pb = PINB & (_BV(PB0) | _BV(PB4));
         if(pb != oldPb) {
-            setSwitch();
             _delay_ms(UPDOWN_DELAY);
             pb = PINB & (_BV(PB0) | _BV(PB4));
             setSwitch();
@@ -90,7 +91,6 @@ int main() {
             cli();
             if(upSwitch && downSwitch) f = stop;
             else {
-                onTime = OT;
                 if(downSwitch) f = down;
                 else if(upSwitch) f = up;
             }
@@ -125,6 +125,5 @@ ISR(WDT_vect) {
 ISR(INT0_vect) {
     wdt_reset();
     counter++;
-    onTime = OT;
 }
 //ISR(PCINT0_vect) {/* Check which port caused PCI. */}

@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
-avr-g++ -c -g -Os -w -ffunction-sections -fdata-sections -mmcu=attiny13 avr_count.cpp -o avr_count.o
-avr-gcc -Os -Wl,--gc-sections -mmcu=attiny13 -o avr_count.elf avr_count.o
-avr-objcopy -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 avr_count.elf avr_count.eep 
-avr-objcopy -O ihex -R .eeprom avr_count.elf avr_count.hex 
+TOOL_PATH=/usr/local/avr8-gnu-toolchain-linux_x86_64/bin/
+${TOOL_PATH}avr-g++ -c -g -Os -w -ffunction-sections -fdata-sections -mmcu=attiny13 avr_count.cpp -o avr_count.o
+${TOOL_PATH}avr-gcc -Os -Wl,--gc-sections -mmcu=attiny13 -o avr_count.elf avr_count.o
+${TOOL_PATH}avr-objcopy -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 avr_count.elf avr_count.eep 
+${TOOL_PATH}avr-objcopy -O ihex -R .eeprom avr_count.elf avr_count.hex 
