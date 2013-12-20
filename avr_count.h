@@ -1,7 +1,7 @@
 /**********************/
 /* Change as desired. */
 /**********************/
-#define MARGIN 2 // Allows that much pulses counted too much, may start at zero.
+#define MARGIN 4 // Allows half of that much pulses error, may start at zero.
 #define OFFSET 3 // Minimal address, may start at zero.
 /* Will be expanded to an enum comprising the commands. */
 #define commands(item)\
@@ -12,8 +12,9 @@
 /*****************************************************************************/
 /* Don't change anything below if you don't exactly know what you are doing! */
 /*****************************************************************************/
-/* Sometimes, one pulse is missing, so we always sent one more. */
-#define M (MARGIN + 2)
+/* Sometimes, one pulses are missing or counted too */
+/* much, so we always send half of the margin more. */
+#define M (MARGIN + 1 + MARGIN / 2)
 /* The indirection is needed for proper macro expansion. */
 #define LIST_GENERATOR(name, x) name(x)
 /* Make an anonymous enum. */

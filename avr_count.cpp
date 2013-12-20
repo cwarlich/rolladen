@@ -51,7 +51,8 @@ inline void stop() {
 inline void noop() {}
 inline void setupPorts() {
     DDRB = _BV(PB2) | _BV(PB3);  // Output on PB2 and PB3 .
-    PORTB = _BV(PB1) | _BV(PB0) | _BV(PB4); // Pullup on PB1.
+    //PORTB = _BV(PB1) | _BV(PB0) | _BV(PB4); // Pullup on PB1.
+    PORTB = _BV(PB0) | _BV(PB4); // Pullup on PB1.
 }
 inline void setupInts() {
     // Rising edge for INT0 and allow power down mode.
