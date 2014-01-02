@@ -1,7 +1,7 @@
 /**********************/
 /* Change as desired. */
 /**********************/
-const char *names[] = { // List of roller shutters.
+const char *names[] = { // List of roller shutters. ! inverts direction.
     "Gäste",
     "Arbeit",
     "Pergola",
@@ -17,7 +17,7 @@ const char *names[] = { // List of roller shutters.
     "Bad",
     "Nord",
     "West",
-    "Schlafen",
+    "!Schlafen",
     "Lukas",
     "Maja"
 };
@@ -79,10 +79,11 @@ volatile int *gpio() {
     return (volatile int *) ret;
 }
 
+int direction[SIZE(names)];
 void usage(char *arg) {
     printf("Funktionsweise: %s <Name> <Kommando>\n", arg);
     printf("Verfügbare Namen:");
-    for(int i = 0; i < SIZE(names); i++) printf(" %s", names[i]);
+    for(int i = 0; i < SIZE(names); i++) printf(" %s", names[i] + direction[i]);
     printf("\nVerfügbare Kommandos:");
     for(int i = 0; i < SIZE(commands); i++) printf(" %s", commands[i]);
     printf("\n");
@@ -96,12 +97,19 @@ void pin(bool value) {
 }
 
 int main(int argc, char **argv) {
+    for(position = 0; position < SIZE(names); position++) {
+        if(*names[position] == '!') direction[position] = 1;
+        else direction[position] = 0;
+    }
     if(argc != 3) usage(argv[0]);
     int position, task;
-    for(position = 0; position < SIZE(names); position++) if(!strcmp(argv[1], names[position])) break;
+    for(position = 0; position < SIZE(names); position++) {
+        if(!strcmp(argv[1], names[position] + direction[position])) break;
+    }
     if(position >= SIZE(names)) usage(argv[0]);
     for(task = 0; task < SIZE(commands); task++) if(!strcmp(argv[2], commands[task])) break;
     if(task >= SIZE(commands)) usage(argv[0]);
+    if(task < halt && direction[position]) task = !task;
     int count = (((OFFSET + 1 + position) * oneMoreThanLastEnum) + task) * M + 1 + SPARES;
     OUT(PIN);
     sched_param param;
