@@ -97,12 +97,12 @@ void pin(bool value) {
 }
 
 int main(int argc, char **argv) {
+    int position, task;
     for(position = 0; position < SIZE(names); position++) {
         if(*names[position] == '!') direction[position] = 1;
         else direction[position] = 0;
     }
     if(argc != 3) usage(argv[0]);
-    int position, task;
     for(position = 0; position < SIZE(names); position++) {
         if(!strcmp(argv[1], names[position] + direction[position])) break;
     }
