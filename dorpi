@@ -1,1 +1,3 @@
 g++ -o rollo rollo.cpp -lpthread
+chmod u+s rollo
+chmod g+s rollo
