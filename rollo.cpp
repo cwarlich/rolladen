@@ -3,7 +3,7 @@
 /**********************/
 const char *names[] = { // List of roller shutters. ! inverts direction.
     "Gäste",
-    "!Arbeit",
+    "Arbeit",
     "!Pergola",
     "pergola",
     "!Wohnen",

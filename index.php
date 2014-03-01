@@ -21,6 +21,21 @@
                 width:262px;
             }
         </style>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script src="jquery.cookie.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                // If cookie is set, scroll to the position saved in the cookie.
+                if ( $.cookie("scroll") !== null ) {
+                    $(document).scrollTop( $.cookie("scroll") );
+                }
+                // When a button is clicked...
+                $('button').on("click", function() {
+                    // Set a cookie that holds the scroll position.
+                    $.cookie("scroll", $(document).scrollTop() );
+                });
+            });
+        </script>
     </head>
     <body>
         <form method="get" action="">
