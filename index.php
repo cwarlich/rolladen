@@ -40,6 +40,11 @@
     <body>
         <form method="get" action="">
             <?php
+                function sonderzeichen($string) {
+                    $search = array("Ä", "Ö", "Ü", "ä", "ö", "ü", "ß");
+                    $replace = array("&Auml;", "&Ouml;", "&Uuml;", "&auml;", "&ouml;", "&uuml;", "&szlig;", "");
+                    return str_replace($search, $replace, $string);
+                }
                 $w=237;
                 foreach (explode(",", "Links,Rechts,Terrasse,terrasse,Küche,Wohnen,pergola,Pergola,Arbeit,Gäste,Maja,Lukas,Schlafen,West,Nord,Bad,Flur,Kinder") as $x) {
                     echo "<p>";
@@ -50,10 +55,11 @@
                         echo "<p><img src=\"arrow_down.png\" width=\"$w\" height=\"$w\" alt=\"runter\"></p>";
                     echo "</button>";
                     echo "<div class=\"center\">";
+                    $text=sonderzeichen($x);
                     echo "<button name=\"var\" type=\"submit\" value=\"$x halt\">";
                         echo "<div class=\"images\">";
                             echo "<p><img src=\"stop.png\" width=\"$w\" height=\"$w\" alt=\"$x\"></p>";
-                            echo "<span class=\"text\">$x</span>";
+                            echo "<span class=\"text\">$text</span>";
                         echo "</div>";
                     echo "</button>";
                     echo "</div>";
