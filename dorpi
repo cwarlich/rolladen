@@ -1,3 +1,7 @@
+if [ "$(gcc -dumpmachine)" != "arm-linux-gnueabihf" ]; then
+	echo "The rollo application must be build on the RPI!"
+	exit 1 
+fi
 g++ -o rollo rollo.cpp -lpthread
 chmod u+s rollo
 chmod g+s rollo
