@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 TOOL_PATH=/usr/local/avr8-gnu-toolchain-linux_x86_64/bin/
+if [[ ! -x $TOOL_PATH/avr-g++ ]]; then
+	TOOL_PATH=/usr/bin/
+fi
 ${TOOL_PATH}avr-g++ -c -g -Os -w -ffunction-sections -fdata-sections -mmcu=attiny13 avr_count.cpp -o avr_count.o
 ${TOOL_PATH}avr-gcc -Os -Wl,--gc-sections -mmcu=attiny13 -o avr_count.elf avr_count.o
 ${TOOL_PATH}avr-objcopy -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 avr_count.elf avr_count.eep 
